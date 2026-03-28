@@ -1,0 +1,32 @@
+#pragma once
+#include<iostream>
+#include<memory>
+#include<vector>
+#include<unordered_map>
+#include<string>
+#include<functional>
+#include"IDataProcessor.h"
+class ProcessorFactory
+{
+public:
+	using create = std::function<std::unique_ptr<IDataProcessor>()>;//括号为空，表明这个函数不接受任何参数，返回一个std::unique_ptr<IDataProcessor>类型的对象。也就是说，这个函数的作用是创建一个IDataProcessor对象，并返回一个指向该对象的智能指针。
+	//create是一个用来生成processor对象的函数,
+	void register_processor(const std::string& name, create func)
+	{ 
+		creators[name] = func;
+	}
+	std::unique_ptr<IDataProcessor> factory_func(const std::string& name)
+	{
+		auto it = creators.find(name);
+		if (it != creators.end())
+			return it->second();//加上()是为了调用创建函数，来返回一个新的processor对象
+		else
+		{
+			std::cerr << "ProcessorFactory: 未找到处理器: " << name << "\n"; //cerr无缓冲,关联标准错误流，与cout独立
+			return nullptr;
+		}
+	}
+private:
+	std::unordered_map<std::string, create> creators;
+};
+
